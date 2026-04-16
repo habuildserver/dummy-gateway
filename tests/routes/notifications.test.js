@@ -5,10 +5,14 @@ const axios = require('axios');
 const app = require('../../src/index');
 const KEY = 'test-key';
 
+let server;
+beforeAll(() => { server = app.listen(0); });
+afterAll(() => new Promise(resolve => server.close(resolve)));
+
 describe('POST /notifications/send', () => {
   it('proxies to notifications service', async () => {
     axios.post.mockResolvedValue({ data: { receipt_id: 'abc-123' } });
-    const res = await request(app)
+    const res = await request(server)
       .post('/notifications/send')
       .set('X-API-Key', KEY)
       .send({ user_id: '1', message: 'Hello' });
@@ -18,7 +22,7 @@ describe('POST /notifications/send', () => {
 
   it('returns 502 when notifications service is down', async () => {
     axios.post.mockRejectedValue(new Error('ECONNREFUSED'));
-    const res = await request(app)
+    const res = await request(server)
       .post('/notifications/send')
       .set('X-API-Key', KEY)
       .send({ user_id: '1', message: 'Hello' });
