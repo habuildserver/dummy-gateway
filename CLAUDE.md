@@ -41,3 +41,15 @@ Override defaults via environment variables:
 - All env config via `src/config.js`. Never read `process.env` directly in routes.
 - Error shape: `{"error": "<message>"}`.
 - One file per middleware, one file per route group.
+
+## [86d2p8bm0] Testing time-dependent middleware with Supertest
+
+When using `jest.useFakeTimers()` in tests that also use Supertest, always pass `doNotFake: ['nextTick', 'setImmediate']`:
+
+```js
+jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
+```
+
+Without this guard Supertest hangs silently — it relies on `setImmediate` internally. Plain `jest.useFakeTimers()` intercepts it, causing the test to never resolve.
+
+Middleware that holds state (e.g. rate limiter's cleanup interval) should expose a `destroy()` method. Call it at the end of every test that creates an instance to prevent Jest open-handle warnings.
