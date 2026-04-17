@@ -1,9 +1,10 @@
-stage: plan_ready
+stage: review_ready
 plan_approved: true
 approved_approach: 1
-pr_url: null
+pr_url: https://github.com/habuildserver/dummy-gateway/pull/1
 review_verdict: null
 review_iteration: 0
 session_ids:
   planner: 2fa4e25d-1384-43a0-b764-f8c6532f8be3
-updated_at: '2026-04-17T11:26:47.031624Z'
+  implementer: 66548ff0-acea-454e-b2d4-44a4ea1a7d18
+updated_at: '2026-04-17T11:28:51.445892Z'
