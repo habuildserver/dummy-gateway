@@ -1,0 +1,9 @@
+stage: plan_ready
+plan_approved: false
+approved_approach: null
+pr_url: null
+review_verdict: null
+review_iteration: 0
+session_ids:
+  planner: 2fa4e25d-1384-43a0-b764-f8c6532f8be3
+updated_at: '2026-04-17T11:12:03.671158Z'
