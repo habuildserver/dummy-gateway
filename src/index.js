@@ -1,11 +1,13 @@
 const express = require('express');
 const auth = require('./middleware/auth');
+const createRateLimiter = require('./middleware/rateLimiter');
 const usersRouter = require('./routes/users');
 const notificationsRouter = require('./routes/notifications');
 const config = require('./config');
 
 const app = express();
 app.use(express.json());
+app.use(createRateLimiter());
 app.use(auth);
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/users', usersRouter);
