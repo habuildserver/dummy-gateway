@@ -1,4 +1,5 @@
 const express = require('express');
+const { rateLimit } = require('./middleware/rateLimit');
 const auth = require('./middleware/auth');
 const usersRouter = require('./routes/users');
 const notificationsRouter = require('./routes/notifications');
@@ -6,6 +7,7 @@ const config = require('./config');
 
 const app = express();
 app.use(express.json());
+app.use(rateLimit);
 app.use(auth);
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/users', usersRouter);
