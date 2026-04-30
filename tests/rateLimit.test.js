@@ -35,4 +35,23 @@ describe('rateLimit middleware', () => {
     expect(seconds).toBeGreaterThan(0);
     expect(seconds).toBeLessThanOrEqual(60);
   });
+
+  it('allows requests again after the window slides past', async () => {
+    let t = 1_700_000_000_000;
+    const now = () => t;
+    const app = makeApp({ limit: 100, windowMs: 60_000, now });
+
+    for (let i = 0; i < 100; i++) {
+      const res = await request(app).get('/test');
+      expect(res.status).toBe(200);
+    }
+
+    let res = await request(app).get('/test');
+    expect(res.status).toBe(429);
+
+    t += 60_001; // advance past the window
+
+    res = await request(app).get('/test');
+    expect(res.status).toBe(200);
+  });
 });
