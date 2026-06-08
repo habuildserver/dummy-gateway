@@ -4,7 +4,8 @@ function createRateLimiter({ windowMs, max, now = Date.now, sweepEvery = 1000 })
   function middleware(req, res, next) {
     const ip = req.ip || 'unknown';
     const t = now();
-    const timestamps = state.get(ip) || [];
+    const cutoff = t - windowMs;
+    const timestamps = (state.get(ip) || []).filter(ts => ts > cutoff);
 
     if (timestamps.length >= max) {
       const oldest = timestamps[0];

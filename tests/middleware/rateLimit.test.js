@@ -54,4 +54,27 @@ describe('rateLimit middleware', () => {
     expect(retryAfter).toBeGreaterThanOrEqual(1);
     expect(retryAfter).toBeLessThanOrEqual(60);
   });
+
+  it('allows requests again after the window expires', () => {
+    let clock = 1_000_000;
+    const limiter = createRateLimiter({ windowMs: 60000, max: 100, now: () => clock });
+    const req = makeReq();
+
+    for (let i = 0; i < 100; i++) {
+      limiter(req, makeRes(), jest.fn());
+    }
+
+    const blocked = makeRes();
+    limiter(req, blocked, jest.fn());
+    expect(blocked.statusCode).toBe(429);
+
+    clock += 60_001;
+
+    const after = makeRes();
+    const next = jest.fn();
+    limiter(req, after, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(after.statusCode).toBe(200);
+  });
 });
