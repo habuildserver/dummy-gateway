@@ -77,4 +77,25 @@ describe('rateLimit middleware', () => {
     expect(next).toHaveBeenCalledTimes(1);
     expect(after.statusCode).toBe(200);
   });
+
+  it('tracks IPs independently', () => {
+    const limiter = createRateLimiter({ windowMs: 60000, max: 100, now: () => 1_000_000 });
+    const reqA = makeReq('1.1.1.1');
+    const reqB = makeReq('2.2.2.2');
+
+    for (let i = 0; i < 100; i++) {
+      limiter(reqA, makeRes(), jest.fn());
+    }
+
+    const aBlocked = makeRes();
+    limiter(reqA, aBlocked, jest.fn());
+    expect(aBlocked.statusCode).toBe(429);
+
+    const bRes = makeRes();
+    const bNext = jest.fn();
+    limiter(reqB, bRes, bNext);
+
+    expect(bNext).toHaveBeenCalledTimes(1);
+    expect(bRes.statusCode).toBe(200);
+  });
 });
