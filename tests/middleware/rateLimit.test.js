@@ -98,4 +98,26 @@ describe('rateLimit middleware', () => {
     expect(bNext).toHaveBeenCalledTimes(1);
     expect(bRes.statusCode).toBe(200);
   });
+
+  it('sweeps idle IPs from internal state', () => {
+    let clock = 1_000_000;
+    const limiter = createRateLimiter({
+      windowMs: 60000,
+      max: 100,
+      now: () => clock,
+      sweepEvery: 3,
+    });
+
+    limiter(makeReq('1.1.1.1'), makeRes(), jest.fn());
+    limiter(makeReq('2.2.2.2'), makeRes(), jest.fn());
+    expect(limiter._state.size).toBe(2);
+
+    clock += 60_001;
+
+    limiter(makeReq('3.3.3.3'), makeRes(), jest.fn());
+
+    expect(limiter._state.has('3.3.3.3')).toBe(true);
+    expect(limiter._state.has('1.1.1.1')).toBe(false);
+    expect(limiter._state.has('2.2.2.2')).toBe(false);
+  });
 });

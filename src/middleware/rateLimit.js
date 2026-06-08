@@ -1,5 +1,6 @@
 function createRateLimiter({ windowMs, max, now = Date.now, sweepEvery = 1000 }) {
   const state = new Map();
+  let counter = 0;
 
   function middleware(req, res, next) {
     const ip = req.ip || 'unknown';
@@ -16,6 +17,13 @@ function createRateLimiter({ windowMs, max, now = Date.now, sweepEvery = 1000 })
 
     timestamps.push(t);
     state.set(ip, timestamps);
+
+    if (++counter % sweepEvery === 0) {
+      for (const [key, ts] of state) {
+        if (ts[ts.length - 1] <= cutoff) state.delete(key);
+      }
+    }
+
     next();
   }
 
