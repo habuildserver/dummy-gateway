@@ -28,4 +28,30 @@ describe('rateLimit middleware', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body).toBeNull();
   });
+
+  it('returns 429 with Retry-After on the 101st request within the window', () => {
+    const limiter = createRateLimiter({ windowMs: 60000, max: 100, now: () => 1_000_000 });
+    const req = makeReq();
+
+    for (let i = 0; i < 100; i++) {
+      const res = makeRes();
+      const next = jest.fn();
+      limiter(req, res, next);
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(res.statusCode).toBe(200);
+    }
+
+    const res = makeRes();
+    const next = jest.fn();
+    limiter(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(429);
+    expect(res.body).toEqual({ error: 'Too many requests' });
+    expect(res.headers['Retry-After']).toBeDefined();
+    const retryAfter = parseInt(res.headers['Retry-After'], 10);
+    expect(Number.isInteger(retryAfter)).toBe(true);
+    expect(retryAfter).toBeGreaterThanOrEqual(1);
+    expect(retryAfter).toBeLessThanOrEqual(60);
+  });
 });
